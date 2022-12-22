@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +39,6 @@ public class UserService {
                         .userName(dto.getUserName())
                         .password(encoder.encode(dto.getPassword()))
                         .role(UserRole.USER)
-                        .registeredAt(new Timestamp(System.currentTimeMillis()))
                         .build()
         );
         return UserJoinResponse.builder()
@@ -61,5 +61,13 @@ public class UserService {
         return UserLoginResponse.builder()
                 .token(JwtTokenUtil.createToken(user.getUserName(),secretKey,expireTimeMs))
                 .build();
+    }
+
+    public UserEntity getUserByUserName(String userName) {
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+        return user;
     }
 }
