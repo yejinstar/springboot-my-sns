@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/post")
+    @PostMapping("")
     public Response<PostPostingResponse> join(@RequestBody PostPostingRequest dto, Authentication authentication){
         String userName = authentication.getName();
         PostPostingResponse postPostingResponse = postService.posting(dto, userName);
