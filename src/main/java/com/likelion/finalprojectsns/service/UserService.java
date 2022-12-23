@@ -59,7 +59,7 @@ public class UserService {
         }
 
         return UserLoginResponse.builder()
-                .token(JwtTokenUtil.createToken(user.getUserName(),secretKey,expireTimeMs))
+                .jwt(JwtTokenUtil.createToken(user.getUserName(),secretKey,expireTimeMs))
                 .build();
     }
 
