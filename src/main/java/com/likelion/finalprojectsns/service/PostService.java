@@ -1,5 +1,6 @@
 package com.likelion.finalprojectsns.service;
 
+import com.likelion.finalprojectsns.domain.dto.PostGetResponse;
 import com.likelion.finalprojectsns.domain.dto.PostPostingRequest;
 import com.likelion.finalprojectsns.domain.dto.PostPostingResponse;
 import com.likelion.finalprojectsns.domain.entity.PostEntity;
@@ -9,6 +10,8 @@ import com.likelion.finalprojectsns.exception.ErrorCode;
 import com.likelion.finalprojectsns.repository.PostRepository;
 import com.likelion.finalprojectsns.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -82,6 +85,36 @@ public class PostService {
         return PostPostingResponse.builder()
                 .postId(post.getId())
                 .message("포스트 삭제 완료")
+                .build();
+    }
+
+    public Page<PostGetResponse> get(Pageable pageable) {
+        Page<PostEntity> posts = postRepository.findAll(pageable);
+        Page<PostGetResponse> postGetResponses = posts.map(
+                post -> PostGetResponse.builder()
+                        .id(post.getId())
+                        .body(post.getBody())
+                        .title(post.getTitle())
+                        .userName(post.getUser().getUserName())
+                        .createdAt(post.getCreatedAt())
+                        .lastModifiedAt(post.getLastModifiedAt())
+                        .build());
+        return postGetResponses;
+    }
+
+    public PostGetResponse getOne(Integer postId) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        return PostGetResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .body(post.getBody())
+                .userName(post.getUser().getUserName())
+                .createdAt(post.getCreatedAt())
+                .lastModifiedAt(post.getLastModifiedAt())
                 .build();
     }
 }

@@ -8,6 +8,6 @@ public class BasicController {
 
     @GetMapping("api/v1/hello")
     public String hello(){
-        return "popin";
+        return "happy_new_year";
     }
 }
