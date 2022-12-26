@@ -18,10 +18,10 @@ import org.springframework.web.bind.annotation.*;
 public class PostController {
     private final PostService postService;
     @GetMapping("")
-    public Response<Page<PostGetResponse>> get(
-            @PageableDefault(size = 20, sort = "id",direction = Sort.Direction.ASC) Pageable pageable/*,
+    public Response<PageInfoResponse> get(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable/*,
                                              Authentication authentication*/){
-        Page<PostGetResponse> posts = postService.get(pageable);
+        PageInfoResponse posts = postService.get(pageable);
         return Response.success(posts);
     }
 

@@ -1,5 +1,6 @@
 package com.likelion.finalprojectsns.service;
 
+import com.likelion.finalprojectsns.domain.dto.PageInfoResponse;
 import com.likelion.finalprojectsns.domain.dto.PostGetResponse;
 import com.likelion.finalprojectsns.domain.dto.PostPostingRequest;
 import com.likelion.finalprojectsns.domain.dto.PostPostingResponse;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -88,7 +90,7 @@ public class PostService {
                 .build();
     }
 
-    public Page<PostGetResponse> get(Pageable pageable) {
+    public PageInfoResponse get(Pageable pageable) {
         Page<PostEntity> posts = postRepository.findAll(pageable);
         Page<PostGetResponse> postGetResponses = posts.map(
                 post -> PostGetResponse.builder()
@@ -99,7 +101,21 @@ public class PostService {
                         .createdAt(post.getCreatedAt())
                         .lastModifiedAt(post.getLastModifiedAt())
                         .build());
-        return postGetResponses;
+        PageInfoResponse pageInfoResponse = PageInfoResponse.builder()
+                .content(postGetResponses.getContent())
+                .pageable("INSTANCE")
+                .last(postGetResponses.hasNext()) // next 없으면 false
+                .totalPages(postGetResponses.getTotalPages())
+                .totalElements(postGetResponses.getTotalElements())
+                .size(postGetResponses.getSize())
+                .number(postGetResponses.getNumber())
+                .sort(postGetResponses.getSort())
+                .first(postGetResponses.isFirst())
+                .numberOfElements(postGetResponses.getNumberOfElements())
+                .empty(postGetResponses.isEmpty())
+                .build();
+
+        return pageInfoResponse;
     }
 
     public PostGetResponse getOne(Integer postId) {
