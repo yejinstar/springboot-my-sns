@@ -129,15 +129,322 @@
   CI / CD 과정을 자동화하니까 기능 추가마다 배포과정을 직접 수행하지 않아도 되어서 기능 개발에 더 시간을 쓸 수 있었다.
 
 
+- ERD
+
+    <img src="img.png" width="300" height="400">
+
+  JPA Auditing은 Spring Data JPA에서 시간에 대해서 자동으로 값을 넣어주는 기능이다.
+  대표적으로 생성일자, 수정일자 등의 필드와 컬럼으로 사용할 수 있다. spring-boot-starter-data-jpa 의존성 추가해서 사용할 수 있다. 
+  ```java
+  @Getter
+  @Setter
+  @MappedSuperclass
+  @EntityListeners(AuditingEntityListener.class)
+  @ToString
+  public class BaseEntity {
+
+  @CreatedDate
+  @Column(updatable = false)
+  private LocalDateTime createdAt;
+
+  @LastModifiedDate
+  @Column
+  private LocalDateTime lastModifiedAt;
+  }
+  ```
+  BaseEntity 생성해서 UserEntity와 PostEntity가 상속받게 한다.
+
+  ```java
+  @Configuration
+  @EnableJpaAuditing
+  public class JpaAuditingConfiguration {
+  }
+  ```
+  Contifiguration 클래스를 생성해서 JPA Auditing을 활성화 시키면 Auditing으로 생성, 변경시에 자동으로 DB에 업데이트 되도록 한다.
+
 - 회원 인증·인가 기능 - 회원가입
 
   POST /api/v1/users/join 엔드포인트
+    ```java
+    @PostMapping("/join")
+    public Response<UserJoinResponse> join(@RequestBody UserJoinRequest dto){
+        UserJoinResponse userJoinResponse = userService.join(dto);
+        return Response.success(userJoinResponse);
+    }
+    ```
+  UserJoinRequest 와 UserJoinResponse DTO를 만든다.
+  UserController join() 에서 UserJoinRequest로 회원가입 요청을 보내면 UserJoinResponse로 회원가입 요쳥 결과를 받는다.
+
+    ```java
+    public UserJoinResponse join(UserJoinRequest dto) {
+            userRepository.findByUserName(dto.getUserName())
+                    .ifPresent(user -> {
+                        throw new AppException(ErrorCode.DUPLICATED_USER_NAME, String.format("userName:%s 는 이미 있습니다.", dto.getUserName()));
+                    });
+            UserEntity savedUser = userRepository.save(
+                    UserEntity.builder()
+                            .userName(dto.getUserName())
+                            .password(encoder.encode(dto.getPassword()))
+                            .role(UserRole.USER)
+                            .build()
+            );
+            return UserJoinResponse.builder()
+                    .userId(savedUser.getId())
+                    .userName(savedUser.getUserName())
+                    .build();
+        }
+    ```
+  UserService에 join 메서드에서 UserRequest에 담긴 내용으로 UserEntity 만들어준다. EncrypterConfig.java BCryptPasswordEncoder를 사용하여 password를 encoding해서 UserRepository의 save() 기능으로 DB에 값을 넣어주고 UserJoinResponse 형태로 리턴하게 한다.
+
+    ```java
+    public class Response<T> {
+        private String resultCode;
+        private T result;
+
+        public static <T> Response<T> error(T result) {
+
+            return new Response("ERROR", result);
+        }
+
+        public static <T> Response<T> success(T result) {
+            return new Response("SUCCESS", result);
+        }
+    }
+    ```
+  Controller에서 요청에 대한 Return 값의 형식을 JSON resultCode, result 로 일치시키기 위해 Response Class를 만들어 Response DTO가 상속 받을 수 있게 했다.
+
+- 회원 인증·인가 기능 - 로그인
+
+  POST /api/v1/users/login 엔드포인트
+    ```java
+    @PostMapping("/login")
+    public Response<UserLoginResponse> login(@RequestBody UserLoginRequest dto) {
+        UserLoginResponse userLoginResponse = userService.login(dto);
+        return Response.success(userLoginResponse);
+    }
+    ```
+  join 기능과 마찬가지로 UserLoginRequest, UserLoginResponse DTO 만들어서 로그인 기능을 구현했다.
+
+  ```java
+    public UserLoginResponse login(UserLoginRequest dto) {
+
+        UserEntity user = userRepository.findByUserName(dto.getUserName())
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 는 가입된 적이 없습니다.", dto.getUserName()));
+                });
+
+        if (!encoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.INVALID_PASSWORD, "password가 잘못 되었습니다.");
+        }
+
+        return UserLoginResponse.builder()
+                .jwt(JwtTokenUtil.createToken(user.getUserName(),secretKey,expireTimeMs))
+                .build();
+    }
+    ```
+    로그인에 성공하면 JWT 토큰을 return 받는다. JwtTokenUtil로 jwt 토큰을 만든다.
+
+  ```java
+    public class SecurityConfig {
+
+        @Value("${jwt.token.secret}")
+        private String secretKey;
+        private final UserService userService;
+
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+            return httpSecurity
+                    .httpBasic().disable()
+                    .csrf().disable()
+                    .cors().and()
+                    .authorizeRequests()
+                    .antMatchers("/api/v1/users/join", "/api/v1/users/login").permitAll() // join, login은 언제나 가능
+                    .antMatchers(HttpMethod.GET, "/api/**").permitAll() // 모든 get요청 허용
+                    .antMatchers(HttpMethod.POST, "/api/**").authenticated() // 모든 post요청을 인증된사용자인지 check
+                    .and()
+                    .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // jwt사용하는 경우 씀
+                    .and()
+                    .addFilterBefore(new JwtTokenFilter(userService, secretKey), UsernamePasswordAuthenticationFilter.class) //UserNamePasswordAuthenticationFilter적용하기 전에 JWTTokenFilter를 적용 하라는 뜻 입니다.
+                    .build();
+        }
+    }
+  ```
+
+  Spring Security를 적용하면 권한 설정을 해줄 수 있다. SecurityConfig.java 에서 SecurityFilterChain HttpSecurity를 이용해 GET 요청에 대해서 허용을 해주어야 login, join을 수행할 수 있다. 
 
 
+- 포스트 기능
+  GET /api/v1/posts
+  GET /api/v1/posts/{postId}
+  POST /api/v1/posts
+  PUT /api/v1/{postId}
+  DELETE /api/v1/{postId}
 
+    ```java
+    @GetMapping("")
+    public Response<PageInfoResponse> get(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+        PageInfoResponse posts = postService.get(pageable);
+        return Response.success(posts);
+    }
+
+    /* Post 1개 조회 */
+    @GetMapping("/{postId}")
+    public Response<PostGetResponse> getOne(@PathVariable Integer postId){
+        PostGetResponse postGetResponse = postService.getOne(postId);
+        return Response.success(postGetResponse);
+    }
+
+    /* Post 작성 */
+    @PostMapping("")
+    public Response<PostPostingResponse> posting(@RequestBody PostPostingRequest dto, Authentication authentication){
+        String userName = authentication.getName();
+        PostPostingResponse postPostingResponse = postService.posting(dto, userName);
+        return Response.success(postPostingResponse);
+    }
+
+    /* Post 수정 */
+    @PutMapping("/{postId}")
+    public Response<PostPostingResponse> edit(@PathVariable Integer postId, @RequestBody PostPostingRequest dto, Authentication authentication){
+        String userName = authentication.getName();
+        PostPostingResponse postPostingResponse = postService.edit(postId, dto, userName);
+        return Response.success(postPostingResponse);
+    }
+
+    /* Post 삭제 */
+    @DeleteMapping("/{postId}")
+    public Response<PostPostingResponse> delete(@PathVariable Integer postId, Authentication authentication){
+        String userName = authentication.getName();
+        PostPostingResponse postPostingResponse = postService.delete(postId, userName);
+        return Response.success(postPostingResponse);
+    }
+    ```
+  PostController에 Post 조회, 리스트, 등록, 수정, 삭제 method 추가한다.
+  포스트 조회할 때 필요한 PostGetResponse, 포스트 작성할 때 필요한 PostPostingRequest, PostPostingResponse 그리고 Page 관련 정보 관련 PageInfoResponse DTO를 만든다.
+
+    ```java
+    public PostPostingResponse posting(PostPostingRequest dto, String userName) {
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        PostEntity post = postRepository.save(
+                PostEntity.builder()
+                        .title(dto.getTitle())
+                        .body(dto.getBody())
+                        .user(user)
+                        .build()
+        );
+        return PostPostingResponse.builder()
+                .postId(post.getId())
+                .message("포스트 등록 완료")
+                .build();
+    }
+
+    public PostPostingResponse edit(Integer postId, PostPostingRequest dto, String userName) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        if (!(post.getUser().getId() == user.getId())) {
+            throw new AppException(ErrorCode.INVALID_PERMISSION,
+                    String.format("postId:%d 의 작성자와 userName:%s 의 아이디 %d 가 일치하지 않습니다", postId, userName,user.getId() ));
+        }
+
+        post.setBody(dto.getBody());
+        post.setTitle(dto.getTitle());
+
+        postRepository.save(post);
+        return PostPostingResponse.builder()
+                .postId(post.getId())
+                .message("포스트 수정 완료")
+                .build();
+    }
+
+    public PostPostingResponse delete(Integer postId, String userName) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        if (!(post.getUser().getId() == user.getId())) {
+            throw new AppException(ErrorCode.INVALID_PERMISSION,
+                    String.format("postId:%d 의 작성자 아이디 %d 와 userName:%s 의 아이디 %d 가 일치하지 않습니다", postId, post.getUser().getId(),userName,user.getId() ));
+        }
+
+        postRepository.delete(post);
+        return PostPostingResponse.builder()
+                .postId(post.getId())
+                .message("포스트 삭제 완료")
+                .build();
+    }
+
+    public PageInfoResponse get(Pageable pageable) {
+        Page<PostEntity> posts = postRepository.findAll(pageable);
+        Page<PostGetResponse> postGetResponses = posts.map(
+                post -> PostGetResponse.builder()
+                        .id(post.getId())
+                        .body(post.getBody())
+                        .title(post.getTitle())
+                        .userName(post.getUser().getUserName())
+                        .createdAt(post.getCreatedAt())
+                        .lastModifiedAt(post.getLastModifiedAt())
+                        .build());
+
+        PageInfoResponse pageInfoResponse = PageInfoResponse.builder()
+                .content(postGetResponses.getContent())
+                .pageable("INSTANCE")
+                .last(postGetResponses.hasNext()) // next 없으면 false
+                .totalPages(postGetResponses.getTotalPages())
+                .totalElements(postGetResponses.getTotalElements())
+                .size(postGetResponses.getSize())
+                .number(postGetResponses.getNumber())
+                .sort(postGetResponses.getSort())
+                .first(postGetResponses.isFirst())
+                .numberOfElements(postGetResponses.getNumberOfElements())
+                .empty(postGetResponses.isEmpty())
+                .build();
+
+        return pageInfoResponse;
+    }
+
+    public PostGetResponse getOne(Integer postId) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        return PostGetResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .body(post.getBody())
+                .userName(post.getUser().getUserName())
+                .createdAt(post.getCreatedAt())
+                .lastModifiedAt(post.getLastModifiedAt())
+                .build();
+    }
+    ```
+  post 관련 기능별 method 만들어서 비지니스 로직 구현한다.
 
 
 **특이사항**
 
-- Factory Method Pattern으로 코드 리팩토링
-- WebMvcTest 공부해보고 Test Code 작성
+- TDD가 습관화 되어있지 않아서 Test 코드 작성에서 많은 혼란이 있었다. WebMvcTest를 더 깊게 공부해보고 Test Code 작성해볼것이다.
+- 코드 리팩토링 할 때, Factory Method Pattern으로 코드 리팩토링해서 객체 생성하는 코드를 분리해서 유지보수에 편하게 만들어볼 것이다.
+- 이번 미션하면서 읽어보고 공부했던 Security, Lombok, Page 내용 정리하기
+- ERD와 UML 다이어그램 그려보기
+
+
