@@ -114,7 +114,9 @@
         }
     }
     ```
-  Swagger 적용해서 API 명세 관리와 직접 통신을 시도해서 요청을 보내고 결과값을 받아보며 Test 했다.
+    Swagger 적용해서 API 명세 관리와 직접 통신을 시도해서 요청을 보내고 결과값을 받아보며 Test 했다.
+    
+    http://ec2-13-209-70-189.ap-northeast-2.compute.amazonaws.com:8080/swagger-ui/
 
 
 - AWS EC2 인스턴스 생성 및 Docker로 배포
