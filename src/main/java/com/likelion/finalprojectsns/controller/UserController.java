@@ -19,12 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
+    /* Join */
     @PostMapping("/join")
     public Response<UserJoinResponse> join(@RequestBody UserJoinRequest dto){
         UserJoinResponse userJoinResponse = userService.join(dto);
         return Response.success(userJoinResponse);
     }
 
+    /* Login */
     @PostMapping("/login")
     public Response<UserLoginResponse> login(@RequestBody UserLoginRequest dto) {
         UserLoginResponse userLoginResponse = userService.login(dto);

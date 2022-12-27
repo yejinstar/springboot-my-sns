@@ -17,26 +17,31 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
+
+    /* Post 전체 조회 */
     @GetMapping("")
     public Response<PageInfoResponse> get(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable/*,
-                                             Authentication authentication*/){
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         PageInfoResponse posts = postService.get(pageable);
         return Response.success(posts);
     }
 
+    /* Post 1개 조회 */
     @GetMapping("/{postId}")
-    public Response<PostGetResponse> getOne(@PathVariable Integer postId /*Authentication authentication*/){
+    public Response<PostGetResponse> getOne(@PathVariable Integer postId){
         PostGetResponse postGetResponse = postService.getOne(postId);
         return Response.success(postGetResponse);
     }
+
+    /* Post 작성 */
     @PostMapping("")
-    public Response<PostPostingResponse> join(@RequestBody PostPostingRequest dto, Authentication authentication){
+    public Response<PostPostingResponse> posting(@RequestBody PostPostingRequest dto, Authentication authentication){
         String userName = authentication.getName();
         PostPostingResponse postPostingResponse = postService.posting(dto, userName);
         return Response.success(postPostingResponse);
     }
 
+    /* Post 수정 */
     @PutMapping("/{postId}")
     public Response<PostPostingResponse> edit(@PathVariable Integer postId, @RequestBody PostPostingRequest dto, Authentication authentication){
         String userName = authentication.getName();
@@ -44,6 +49,7 @@ public class PostController {
         return Response.success(postPostingResponse);
     }
 
+    /* Post 삭제 */
     @DeleteMapping("/{postId}")
     public Response<PostPostingResponse> delete(@PathVariable Integer postId, Authentication authentication){
         String userName = authentication.getName();

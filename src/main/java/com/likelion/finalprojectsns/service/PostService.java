@@ -101,6 +101,7 @@ public class PostService {
                         .createdAt(post.getCreatedAt())
                         .lastModifiedAt(post.getLastModifiedAt())
                         .build());
+
         PageInfoResponse pageInfoResponse = PageInfoResponse.builder()
                 .content(postGetResponses.getContent())
                 .pageable("INSTANCE")
