@@ -57,8 +57,7 @@ public class PostService {
                     String.format("postId:%d 의 작성자와 userName:%s 의 아이디 %d 가 일치하지 않습니다", postId, userName,user.getId() ));
         }
 
-        post.setBody(dto.getBody());
-        post.setTitle(dto.getTitle());
+        post.editPost(dto);
 
         postRepository.save(post);
         return PostPostingResponse.builder()

@@ -1,6 +1,7 @@
 package com.likelion.finalprojectsns.domain.entity;
 
 import com.likelion.finalprojectsns.domain.UserRole;
+import com.likelion.finalprojectsns.domain.dto.PostPostingRequest;
 import lombok.*;
 
 import javax.persistence.*;
@@ -24,4 +25,8 @@ public class PostEntity extends BaseEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
+    public void editPost(PostPostingRequest postPostingRequest) {
+        this.title = postPostingRequest.getTitle();
+        this.body = postPostingRequest.getBody();
+    }
 }
