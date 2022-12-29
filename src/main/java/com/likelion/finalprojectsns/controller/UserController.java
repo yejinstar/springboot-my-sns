@@ -21,15 +21,15 @@ public class UserController {
 
     /* Join */
     @PostMapping("/join")
-    public Response<UserJoinResponse> join(@RequestBody UserJoinRequest dto){
+    public ResponseEntity<Response<UserJoinResponse>> join(@RequestBody UserJoinRequest dto){
         UserJoinResponse userJoinResponse = userService.join(dto);
-        return Response.success(userJoinResponse);
+        return ResponseEntity.ok().body(Response.success(userJoinResponse));
     }
 
     /* Login */
     @PostMapping("/login")
-    public Response<UserLoginResponse> login(@RequestBody UserLoginRequest dto) {
+    public ResponseEntity<Response<UserLoginResponse>> login(@RequestBody UserLoginRequest dto) {
         UserLoginResponse userLoginResponse = userService.login(dto);
-        return Response.success(userLoginResponse);
+        return ResponseEntity.ok().body(Response.success(userLoginResponse));
     }
 }

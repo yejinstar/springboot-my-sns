@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,40 +21,40 @@ public class PostController {
 
     /* Post 전체 조회 */
     @GetMapping("")
-    public Response<PageInfoResponse> get(
+    public ResponseEntity<Response<PageInfoResponse>> get(
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
         PageInfoResponse posts = postService.get(pageable);
-        return Response.success(posts);
+        return ResponseEntity.ok().body(Response.success(posts));
     }
 
     /* Post 1개 조회 */
     @GetMapping("/{postId}")
-    public Response<PostGetResponse> getOne(@PathVariable Integer postId){
+    public ResponseEntity<Response<PostGetResponse>> getOne(@PathVariable Integer postId){
         PostGetResponse postGetResponse = postService.getOne(postId);
-        return Response.success(postGetResponse);
+        return ResponseEntity.ok().body(Response.success(postGetResponse));
     }
 
     /* Post 작성 */
     @PostMapping("")
-    public Response<PostPostingResponse> posting(@RequestBody PostPostingRequest dto, Authentication authentication){
+    public ResponseEntity<Response<PostPostingResponse>> posting(@RequestBody PostPostingRequest dto, Authentication authentication){
         String userName = authentication.getName();
         PostPostingResponse postPostingResponse = postService.posting(dto, userName);
-        return Response.success(postPostingResponse);
+        return ResponseEntity.ok().body(Response.success(postPostingResponse));
     }
 
     /* Post 수정 */
     @PutMapping("/{postId}")
-    public Response<PostPostingResponse> edit(@PathVariable Integer postId, @RequestBody PostPostingRequest dto, Authentication authentication){
+    public ResponseEntity<Response<PostPostingResponse>> edit(@PathVariable Integer postId, @RequestBody PostPostingRequest dto, Authentication authentication){
         String userName = authentication.getName();
         PostPostingResponse postPostingResponse = postService.edit(postId, dto, userName);
-        return Response.success(postPostingResponse);
+        return ResponseEntity.ok().body(Response.success(postPostingResponse));
     }
 
     /* Post 삭제 */
     @DeleteMapping("/{postId}")
-    public Response<PostPostingResponse> delete(@PathVariable Integer postId, Authentication authentication){
+    public ResponseEntity<Response<PostPostingResponse>> delete(@PathVariable Integer postId, Authentication authentication){
         String userName = authentication.getName();
         PostPostingResponse postPostingResponse = postService.delete(postId, userName);
-        return Response.success(postPostingResponse);
+        return ResponseEntity.ok().body(Response.success(postPostingResponse));
     }
 }
