@@ -29,6 +29,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        log.info("** JwtFilter");
         // Token꺼내기
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         log.info("authorizationHeader:{}", authorizationHeader);
@@ -45,7 +46,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         // Valid한지 확인 하기
         if (JwtTokenUtil.isExpired(token, key)) {
-            log.error("Token 유효 기간이 지났습니다.");
+            log.info("Token 유효 기간이 지났습니다.");
             filterChain.doFilter(request, response);
             return;
         }
