@@ -3,6 +3,8 @@ package com.likelion.finalprojectsns.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.likelion.finalprojectsns.domain.dto.UserJoinRequest;
 import com.likelion.finalprojectsns.domain.dto.UserJoinResponse;
+import com.likelion.finalprojectsns.exception.AppException;
+import com.likelion.finalprojectsns.exception.ErrorCode;
 import com.likelion.finalprojectsns.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,9 +61,23 @@ class UserControllerTest {
     }
 
     @Test
+    @WithMockUser
     @DisplayName("join fail - userName 중복")
     void join_fail() throws Exception {
+        UserJoinRequest userJoinRequest = UserJoinRequest.builder()
+                .userName("userName")
+                .password("1234")
+                .build();
 
+        when(userService.join(any()))
+                .thenThrow(new AppException(ErrorCode.DUPLICATED_USER_NAME, ErrorCode.DUPLICATED_USER_NAME.getMessage()));
+
+        mockMvc.perform(post("/api/v1/users/join")
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsBytes(userJoinRequest))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is(ErrorCode.DUPLICATED_USER_NAME.getStatus().value()))
+                .andDo(print());
     }
 
     @Test
