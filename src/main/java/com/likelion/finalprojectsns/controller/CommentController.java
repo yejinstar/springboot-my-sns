@@ -26,4 +26,13 @@ public class CommentController {
         CommentWriteResponse commentWriteResponse = commentService.writing(postId, dto, userName);
         return ResponseEntity.ok().body(Response.success(commentWriteResponse));
     }
+    /* Comment 변경 */
+    @PutMapping("/{id}")
+    public ResponseEntity<Response<CommentWriteResponse>> edit(@PathVariable Integer postId, @PathVariable Integer id,
+                                                               @RequestBody CommentWriteRequest dto, Authentication authentication) {
+        String userName = authentication.getName();
+        CommentWriteResponse commentWriteResponse = commentService.edit(postId, id, dto, userName);
+        return ResponseEntity.ok().body(Response.success(commentWriteResponse));
+    }
+
 }
