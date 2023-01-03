@@ -23,6 +23,7 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
 
+    /* Comment 작성 */
     public CommentWriteResponse writing(Integer postId,CommentWriteRequest dto, String userName) {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> {
@@ -50,7 +51,7 @@ public class CommentService {
                 .createdAt(comment.getCreatedAt())
                 .build();
     }
-
+    /* Comment 수정 */
     public CommentWriteResponse edit(Integer postId, Integer id, CommentWriteRequest dto, String userName) {
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> {
@@ -80,6 +81,34 @@ public class CommentService {
                 .userName(comment.getUser().getUserName())
                 .postId(comment.getPost().getId())
                 .createdAt(comment.getCreatedAt())
+                .build();
+    }
+    /* Comment 삭제 */
+    public CommentDeleteResponse delete(Integer postId, Integer id, String userName) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        CommentEntity comment = commentRepository.findById(id)
+                .orElseThrow(() ->{
+                    throw new AppException(ErrorCode.COMMENT_NOT_FOUND, String.format("commentId:%d 이 없습니다.", id));
+                });
+
+        if (!(comment.getUser().getId() == user.getId())) {
+            throw new AppException(ErrorCode.INVALID_PERMISSION,
+                    String.format("commentId:%d 의 작성자 userName:%s 의 아이디 %d 가 일치하지 않습니다", id, userName,user.getId() ));
+        }
+
+        commentRepository.delete(comment);
+        return CommentDeleteResponse.builder()
+                .message("댓글 삭제 완료.")
+                .id(comment.getId())
                 .build();
     }
 

@@ -35,4 +35,12 @@ public class CommentController {
         return ResponseEntity.ok().body(Response.success(commentWriteResponse));
     }
 
+    /* Comment 삭제 */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Response<CommentDeleteResponse>> delete(@PathVariable Integer postId, @PathVariable Integer id, Authentication authentication){
+        String userName = authentication.getName();
+        CommentDeleteResponse commentDeleteResponse = commentService.delete(postId, id, userName);
+        return ResponseEntity.ok().body(Response.success(commentDeleteResponse));
+    }
+
 }
