@@ -23,6 +23,45 @@ public class CommentService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
 
+    /* Comment 전체 조회*/
+    public CommentPageInfoResponse get(Integer postId, Pageable pageable, String userName) {
+        PostEntity post = postRepository.findById(postId)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
+                });
+
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        Page<CommentEntity> comments = commentRepository.findAll(pageable);
+        Page<CommentGetResponse> commentGetResponses = comments.map(
+                comment -> CommentGetResponse.builder()
+                        .id(comment.getId())
+                        .comment(comment.getComment())
+                        .userName(comment.getUser().getUserName())
+                        .postId(comment.getPost().getId())
+                        .createdAt(comment.getCreatedAt())
+                        .build()
+        );
+
+        CommentPageInfoResponse commentPageInfoResponse = CommentPageInfoResponse.builder()
+                .content(commentGetResponses.getContent())
+                .pageable(commentGetResponses.getPageable())
+                .last(commentGetResponses.hasNext())
+                .totalPages(commentGetResponses.getTotalPages())
+                .totalElements(commentGetResponses.getTotalElements())
+                .size(commentGetResponses.getSize())
+                .number(commentGetResponses.getNumber())
+                .sort(commentGetResponses.getSort())
+                .numberOfElements(commentGetResponses.getNumberOfElements())
+                .first(commentGetResponses.isFirst())
+                .empty(commentGetResponses.isEmpty())
+                .build();
+        return commentPageInfoResponse;
+    }
+
     /* Comment 작성 */
     public CommentWriteResponse writing(Integer postId,CommentWriteRequest dto, String userName) {
         PostEntity post = postRepository.findById(postId)

@@ -18,6 +18,16 @@ import org.springframework.web.bind.annotation.*;
 public class CommentController {
     private final CommentService commentService;
 
+    /* Comment 전체 조회 */
+    @GetMapping("")
+    public ResponseEntity<Response<CommentPageInfoResponse>> get(
+            @PathVariable Integer postId, @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication) {
+        String userName = authentication.getName();
+        CommentPageInfoResponse comments = commentService.get(postId, pageable, userName);
+        return ResponseEntity.ok().body(Response.success(comments));
+    }
+
     /* Comment 등록 */
     @PostMapping("")
     public ResponseEntity<Response<CommentWriteResponse>> writing(@PathVariable Integer postId,
