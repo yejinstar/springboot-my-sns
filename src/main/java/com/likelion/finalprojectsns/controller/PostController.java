@@ -57,4 +57,13 @@ public class PostController {
         PostPostingResponse postPostingResponse = postService.delete(postId, userName);
         return ResponseEntity.ok().body(Response.success(postPostingResponse));
     }
+
+    /* MyFeed 조회 */
+    @GetMapping("/my")
+    public ResponseEntity<Response<MyFeedPageInfoResponse>> myFeed(@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Authentication authentication) {
+        String userName = authentication.getName();
+        MyFeedPageInfoResponse myFeeds = postService.myFeed(pageable, userName);
+        return ResponseEntity.ok().body(Response.success(myFeeds));
+    }
 }

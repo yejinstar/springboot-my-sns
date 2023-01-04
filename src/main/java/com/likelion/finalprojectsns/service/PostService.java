@@ -1,9 +1,6 @@
 package com.likelion.finalprojectsns.service;
 
-import com.likelion.finalprojectsns.domain.dto.PageInfoResponse;
-import com.likelion.finalprojectsns.domain.dto.PostGetResponse;
-import com.likelion.finalprojectsns.domain.dto.PostPostingRequest;
-import com.likelion.finalprojectsns.domain.dto.PostPostingResponse;
+import com.likelion.finalprojectsns.domain.dto.*;
 import com.likelion.finalprojectsns.domain.entity.PostEntity;
 import com.likelion.finalprojectsns.domain.entity.UserEntity;
 import com.likelion.finalprojectsns.exception.AppException;
@@ -131,5 +128,38 @@ public class PostService {
                 .createdAt(post.getCreatedAt())
                 .lastModifiedAt(post.getLastModifiedAt())
                 .build();
+    }
+
+    public MyFeedPageInfoResponse myFeed(Pageable pageable, String userName) {
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        Page<PostEntity> posts = postRepository.findByUser(pageable, user);
+        Page<PostGetResponse> postGetResponses = posts.map(
+                post -> PostGetResponse.builder()
+                        .id(post.getId())
+                        .body(post.getBody())
+                        .title(post.getTitle())
+                        .userName(post.getUser().getUserName())
+                        .createdAt(post.getCreatedAt())
+                        .lastModifiedAt(post.getLastModifiedAt())
+                        .build());
+
+        MyFeedPageInfoResponse myFeedPageInfoResponse = MyFeedPageInfoResponse.builder()
+                .content(postGetResponses.getContent())
+                .pageable(postGetResponses.getPageable())
+                .last(postGetResponses.hasNext())
+                .totalPages(postGetResponses.getTotalPages())
+                .size(postGetResponses.getSize())
+                .totalElements(postGetResponses.getTotalElements())
+                .number(postGetResponses.getNumber())
+                .sort(postGetResponses.getSort())
+                .first(postGetResponses.isFirst())
+                .numberOfElements(postGetResponses.getNumberOfElements())
+                .empty(postGetResponses.isEmpty())
+                .build();
+        return myFeedPageInfoResponse;
     }
 }
