@@ -1,10 +1,13 @@
 package com.likelion.finalprojectsns.service;
 
+import com.likelion.finalprojectsns.domain.AlarmType;
+import com.likelion.finalprojectsns.domain.entity.AlarmEntity;
 import com.likelion.finalprojectsns.domain.entity.LikeEntity;
 import com.likelion.finalprojectsns.domain.entity.PostEntity;
 import com.likelion.finalprojectsns.domain.entity.UserEntity;
 import com.likelion.finalprojectsns.exception.AppException;
 import com.likelion.finalprojectsns.exception.ErrorCode;
+import com.likelion.finalprojectsns.repository.AlarmRepository;
 import com.likelion.finalprojectsns.repository.LikeRepository;
 import com.likelion.finalprojectsns.repository.PostRepository;
 import com.likelion.finalprojectsns.repository.UserRepository;
@@ -21,6 +24,7 @@ public class LikeService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
+    private final AlarmRepository alarmRepository;
 
 
     public String like(String userName, Integer postId) {
@@ -51,13 +55,23 @@ public class LikeService {
                             .post(post)
                             .build()
             );
+
+            alarmRepository.save(
+                    AlarmEntity.builder()
+                            .alarmType(AlarmType.NEW_LIKE_ON_POST)
+                            .fromUserId(user.getId())
+                            .targetId(post.getId())
+                            .text(AlarmType.NEW_LIKE_ON_POST.getMessage())
+                            .user(post.getUser())
+                            .build()
+            );
         }
         return returnStr;
     }
 
 
     public Long likeCount(String userName, Integer postId) {
-        UserEntity user = userRepository.findByUserName(userName)
+        userRepository.findByUserName(userName)
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
                 });
@@ -67,6 +81,7 @@ public class LikeService {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
 
+//        return likeRepository.countByPostAndDeleted_atIsNull(post);
         return likeRepository.countByPost(post);
     }
 }

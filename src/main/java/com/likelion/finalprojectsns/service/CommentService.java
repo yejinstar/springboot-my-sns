@@ -1,11 +1,14 @@
 package com.likelion.finalprojectsns.service;
 
+import com.likelion.finalprojectsns.domain.AlarmType;
 import com.likelion.finalprojectsns.domain.dto.*;
+import com.likelion.finalprojectsns.domain.entity.AlarmEntity;
 import com.likelion.finalprojectsns.domain.entity.CommentEntity;
 import com.likelion.finalprojectsns.domain.entity.PostEntity;
 import com.likelion.finalprojectsns.domain.entity.UserEntity;
 import com.likelion.finalprojectsns.exception.AppException;
 import com.likelion.finalprojectsns.exception.ErrorCode;
+import com.likelion.finalprojectsns.repository.AlarmRepository;
 import com.likelion.finalprojectsns.repository.CommentRepository;
 import com.likelion.finalprojectsns.repository.PostRepository;
 import com.likelion.finalprojectsns.repository.UserRepository;
@@ -23,6 +26,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final AlarmRepository alarmRepository;
 
     /* Comment 전체 조회*/
     public CommentPageInfoResponse get(Integer postId, Pageable pageable, String userName) {
@@ -80,6 +84,16 @@ public class CommentService {
                         .comment(dto.getComment())
                         .post(post)
                         .user(user)
+                        .build()
+        );
+
+        alarmRepository.save(
+                AlarmEntity.builder()
+                        .alarmType(AlarmType.NEW_COMMENT_ON_POST)
+                        .fromUserId(user.getId())
+                        .targetId(post.getId())
+                        .text(AlarmType.NEW_COMMENT_ON_POST.getMessage())
+                        .user(post.getUser())
                         .build()
         );
 
