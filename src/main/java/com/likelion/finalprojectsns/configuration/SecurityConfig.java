@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .antMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()
                 .and()
                 .exceptionHandling()
-                .authenticationEntryPoint(new CustomAuthenticationEntryPointHandler())
+                .authenticationEntryPoint(new CustomAuthenticationEntryPointHandler()) // 토큰 없는 경우 예외처리
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // jwt사용하는 경우 씀
