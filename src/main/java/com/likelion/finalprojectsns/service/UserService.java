@@ -1,17 +1,18 @@
 package com.likelion.finalprojectsns.service;
 
 import com.likelion.finalprojectsns.domain.UserRole;
-import com.likelion.finalprojectsns.domain.dto.UserJoinRequest;
-import com.likelion.finalprojectsns.domain.dto.UserJoinResponse;
-import com.likelion.finalprojectsns.domain.dto.UserLoginRequest;
-import com.likelion.finalprojectsns.domain.dto.UserLoginResponse;
+import com.likelion.finalprojectsns.domain.dto.*;
+import com.likelion.finalprojectsns.domain.entity.AlarmEntity;
 import com.likelion.finalprojectsns.domain.entity.UserEntity;
 import com.likelion.finalprojectsns.exception.AppException;
 import com.likelion.finalprojectsns.exception.ErrorCode;
+import com.likelion.finalprojectsns.repository.AlarmRepository;
 import com.likelion.finalprojectsns.repository.UserRepository;
 import com.likelion.finalprojectsns.utils.JwtTokenUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final AlarmRepository alarmRepository;
     private final BCryptPasswordEncoder encoder;
 
     @Value("${jwt.token.secret}") // Spring Annotation
@@ -66,5 +68,26 @@ public class UserService {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
                 });
         return user;
+    }
+
+    public AlarmPageInfoResponse getAlarm(Pageable pageable, String userName) {
+        UserEntity user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> {
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
+                });
+
+        Page<AlarmEntity> alarms = alarmRepository.findAllByUser(user, pageable);
+        Page<AlarmGetResponse> alarmGetResponses = alarms.map(
+                alarm -> AlarmGetResponse.builder()
+                        .id(alarm.getId())
+                        .alarmType(alarm.getAlarmType())
+                        .text(alarm.getAlarmType().getMessage())
+                        .fromUserId(alarm.getFromUserId())
+                        .targetId(alarm.getTargetId())
+                        .createdAt(alarm.getCreatedAt())
+                        .build()
+        );
+        return new AlarmPageInfoResponse().builder().content(alarmGetResponses.getContent())
+                .build();
     }
 }

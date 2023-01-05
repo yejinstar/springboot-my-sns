@@ -1,17 +1,15 @@
 package com.likelion.finalprojectsns.controller;
 
 import com.likelion.finalprojectsns.domain.Response;
-import com.likelion.finalprojectsns.domain.dto.UserJoinRequest;
-import com.likelion.finalprojectsns.domain.dto.UserJoinResponse;
-import com.likelion.finalprojectsns.domain.dto.UserLoginRequest;
-import com.likelion.finalprojectsns.domain.dto.UserLoginResponse;
+import com.likelion.finalprojectsns.domain.dto.*;
 import com.likelion.finalprojectsns.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -31,5 +29,13 @@ public class UserController {
     public ResponseEntity<Response<UserLoginResponse>> login(@RequestBody UserLoginRequest dto) {
         UserLoginResponse userLoginResponse = userService.login(dto);
         return ResponseEntity.ok().body(Response.success(userLoginResponse));
+    }
+
+    @GetMapping("/alarms")
+    public ResponseEntity<Response<AlarmPageInfoResponse>> getAlarm(@PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+                                                                Authentication authentication) {
+        String userName = authentication.getName();
+        AlarmPageInfoResponse alarmPageInfoResponse = userService.getAlarm(pageable, userName);
+        return ResponseEntity.ok().body(Response.success(alarmPageInfoResponse));
     }
 }
