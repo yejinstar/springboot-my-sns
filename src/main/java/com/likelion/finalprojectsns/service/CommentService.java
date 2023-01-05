@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.xml.stream.events.Comment;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +36,7 @@ public class CommentService {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
                 });
 
-        Page<CommentEntity> comments = commentRepository.findAll(pageable);
+        Page<CommentEntity> comments = commentRepository.findAllByPost(post, pageable);
         Page<CommentGetResponse> commentGetResponses = comments.map(
                 comment -> CommentGetResponse.builder()
                         .id(comment.getId())
