@@ -44,8 +44,14 @@ public class LikeService {
         Optional<LikeEntity> like = likeRepository.findByUserAndPost(user, post);
         if (like.isPresent()){
             flag = false;
-            returnStr = "좋아요를 취소했습니다.";
-            likeRepository.delete(like.get());
+            LikeEntity savedLike = like.get();
+            if (savedLike.getDeleted_at() == null) {
+                returnStr = "좋아요를 취소했습니다.";
+                savedLike.cancelLike();
+            } else {
+                savedLike.reLike();
+            }
+            likeRepository.save(savedLike);
         }
 
         if(flag){
@@ -81,7 +87,6 @@ public class LikeService {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
 
-//        return likeRepository.countByPostAndDeleted_atIsNull(post);
         return likeRepository.countByPost(post);
     }
 }

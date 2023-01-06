@@ -2,12 +2,13 @@ package com.likelion.finalprojectsns.domain.entity;
 
 import com.likelion.finalprojectsns.domain.UserRole;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -15,6 +16,7 @@ import java.sql.Timestamp;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "deleted_at is null")
 public class UserEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +26,7 @@ public class UserEntity extends BaseEntity{
     private String password;
     private UserRole role;
 
-    private Timestamp deletedAt;
+    private LocalDateTime deletedAt;
 
 
 }

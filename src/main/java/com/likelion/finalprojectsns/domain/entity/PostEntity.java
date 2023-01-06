@@ -3,9 +3,11 @@ package com.likelion.finalprojectsns.domain.entity;
 import com.likelion.finalprojectsns.domain.UserRole;
 import com.likelion.finalprojectsns.domain.dto.PostPostingRequest;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Builder
@@ -13,6 +15,7 @@ import java.sql.Timestamp;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "deleted_at is null")
 public class PostEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +23,7 @@ public class PostEntity extends BaseEntity {
 
     private String title;
     private String body;
-
+    private LocalDateTime deletedAt;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity user;
@@ -28,5 +31,9 @@ public class PostEntity extends BaseEntity {
     public void editPost(PostPostingRequest postPostingRequest) {
         this.title = postPostingRequest.getTitle();
         this.body = postPostingRequest.getBody();
+    }
+
+    public void deletePost(){
+        this.deletedAt = LocalDateTime.now();
     }
 }

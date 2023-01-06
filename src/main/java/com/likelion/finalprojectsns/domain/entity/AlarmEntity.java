@@ -2,6 +2,7 @@ package com.likelion.finalprojectsns.domain.entity;
 
 import com.likelion.finalprojectsns.domain.AlarmType;
 import lombok.*;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -12,6 +13,7 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Where(clause = "deleted_at is null")
 public class AlarmEntity extends BaseEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,4 +31,8 @@ public class AlarmEntity extends BaseEntity{
     private Integer fromUserId;
     private Integer targetId; // post.id
     private String text;
+
+    public void deleteAlarm() {
+        this.deleted_at = LocalDate.now();
+    }
 }
