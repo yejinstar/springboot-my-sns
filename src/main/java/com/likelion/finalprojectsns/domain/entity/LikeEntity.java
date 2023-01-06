@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -27,4 +28,12 @@ public class LikeEntity extends BaseEntity {
     private PostEntity post;
 
     private LocalDateTime deleted_at;
+
+    public void cancelLike() {
+        this.deleted_at = LocalDateTime.now();
+    }
+
+    public void reLike() {
+        this.deleted_at = null;
+    }
 }

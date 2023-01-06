@@ -78,7 +78,8 @@ public class PostService {
                     String.format("postId:%d 의 작성자 아이디 %d 와 userName:%s 의 아이디 %d 가 일치하지 않습니다", postId, post.getUser().getId(),userName,user.getId() ));
         }
 
-        postRepository.delete(post);
+        post.deletePost();
+        postRepository.save(post);
         return PostPostingResponse.builder()
                 .postId(post.getId())
                 .message("포스트 삭제 완료")

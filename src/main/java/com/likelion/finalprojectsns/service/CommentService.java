@@ -17,9 +17,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import javax.xml.stream.events.Comment;
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class CommentService {
@@ -35,7 +32,7 @@ public class CommentService {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
 
-        UserEntity user = userRepository.findByUserName(userName)
+        userRepository.findByUserName(userName)
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
                 });
@@ -107,7 +104,7 @@ public class CommentService {
     }
     /* Comment 수정 */
     public CommentWriteResponse edit(Integer postId, Integer id, CommentWriteRequest dto, String userName) {
-        PostEntity post = postRepository.findById(postId)
+        postRepository.findById(postId)
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
@@ -139,7 +136,7 @@ public class CommentService {
     }
     /* Comment 삭제 */
     public CommentDeleteResponse delete(Integer postId, Integer id, String userName) {
-        PostEntity post = postRepository.findById(postId)
+        postRepository.findById(postId)
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
@@ -159,7 +156,9 @@ public class CommentService {
                     String.format("commentId:%d 의 작성자 userName:%s 의 아이디 %d 가 일치하지 않습니다", id, userName,user.getId() ));
         }
 
-        commentRepository.delete(comment);
+        comment.deleteComment();
+        commentRepository.save(comment);
+
         return CommentDeleteResponse.builder()
                 .message("댓글 삭제 완료.")
                 .id(comment.getId())
