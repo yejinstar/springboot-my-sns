@@ -87,6 +87,10 @@ public class LikeService {
                     throw new AppException(ErrorCode.POST_NOT_FOUND, String.format("postId:%d 이 없습니다.", postId));
                 });
 
-        return likeRepository.countByPost(post);
+        Long likeCount = likeRepository.countByPost(post);
+        if (likeCount == null) {
+            likeCount = 0L;
+        }
+        return likeCount;
     }
 }
