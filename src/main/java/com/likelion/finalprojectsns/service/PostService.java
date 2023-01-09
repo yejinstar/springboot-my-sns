@@ -1,10 +1,14 @@
 package com.likelion.finalprojectsns.service;
 
 import com.likelion.finalprojectsns.domain.dto.*;
+import com.likelion.finalprojectsns.domain.entity.CommentEntity;
+import com.likelion.finalprojectsns.domain.entity.LikeEntity;
 import com.likelion.finalprojectsns.domain.entity.PostEntity;
 import com.likelion.finalprojectsns.domain.entity.UserEntity;
 import com.likelion.finalprojectsns.exception.AppException;
 import com.likelion.finalprojectsns.exception.ErrorCode;
+import com.likelion.finalprojectsns.repository.CommentRepository;
+import com.likelion.finalprojectsns.repository.LikeRepository;
 import com.likelion.finalprojectsns.repository.PostRepository;
 import com.likelion.finalprojectsns.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +16,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
 
     public PostPostingResponse posting(PostPostingRequest dto, String userName) {
         UserEntity user = userRepository.findByUserName(userName)
@@ -78,8 +86,21 @@ public class PostService {
                     String.format("postId:%d 의 작성자 아이디 %d 와 userName:%s 의 아이디 %d 가 일치하지 않습니다", postId, post.getUser().getId(),userName,user.getId() ));
         }
 
+        List<CommentEntity> comments = commentRepository.findAllByPost(post);
+        comments.stream().forEach(
+                comment ->
+                    comment.deleteCommnetByPostDelete()
+        );
+
+        List<LikeEntity> likes = likeRepository.findAllByPost(post);
+        likes.stream().forEach(
+                like -> like.cancelLikeByPostDelete()
+        );
+
+        // post Soft Delete(논리삭제)
         post.deletePost();
         postRepository.save(post);
+
         return PostPostingResponse.builder()
                 .postId(post.getId())
                 .message("포스트 삭제 완료")

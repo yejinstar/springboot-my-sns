@@ -37,4 +37,8 @@ public class CommentEntity extends BaseEntity{
     public void deleteComment() {
         this.deletedAt = LocalDateTime.now();
     }
+
+    public void deleteCommnetByPostDelete() {
+        this.deletedAt = LocalDateTime.now();
+    }
 }

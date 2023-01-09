@@ -36,4 +36,8 @@ public class LikeEntity extends BaseEntity {
     public void reLike() {
         this.deleted_at = null;
     }
+
+    public void cancelLikeByPostDelete() {
+        this.deleted_at = LocalDateTime.now();
+    }
 }
