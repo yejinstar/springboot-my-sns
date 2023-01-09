@@ -76,11 +76,11 @@ public class LikeService {
     }
 
 
-    public Long likeCount(String userName, Integer postId) {
-        userRepository.findByUserName(userName)
+    public Long likeCount(/*String userName,*/ Integer postId) {
+        /*userRepository.findByUserName(userName)
                 .orElseThrow(() -> {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
-                });
+                });*/
 
         PostEntity post = postRepository.findById(postId)
                 .orElseThrow(() -> {

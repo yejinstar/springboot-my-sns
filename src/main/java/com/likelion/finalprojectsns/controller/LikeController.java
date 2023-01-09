@@ -22,9 +22,10 @@ public class LikeController {
     }
 
     @GetMapping("")
-    public ResponseEntity<Response<Long>> likeResult(@PathVariable Integer postId, Authentication authentication){
-        String userName = authentication.getName();
-        Long likeResultResponse = likeService.likeCount(userName, postId);
+    public ResponseEntity<Response<Long>> likeResult(@PathVariable Integer postId/*, Authentication authentication*/){
+//        String userName = authentication.getName();
+//        Long likeResultResponse = likeService.likeCount(userName, postId);
+        Long likeResultResponse = likeService.likeCount(postId);
         return ResponseEntity.ok().body(Response.success(likeResultResponse));
     }
 }
