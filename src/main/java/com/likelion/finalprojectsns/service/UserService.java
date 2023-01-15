@@ -76,7 +76,7 @@ public class UserService {
                     throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 이 없습니다.", userName));
                 });
 
-        Page<AlarmEntity> alarms = alarmRepository.findAllByUser(user, pageable);
+        Page<AlarmEntity> alarms = alarmRepository.findAByUser(user, pageable);
         Page<AlarmGetResponse> alarmGetResponses = alarms.map(
                 alarm -> AlarmGetResponse.builder()
                         .id(alarm.getId())
