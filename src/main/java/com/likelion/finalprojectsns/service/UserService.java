@@ -31,7 +31,8 @@ public class UserService {
     public UserJoinResponse join(UserJoinRequest dto) {
         userRepository.findByUserName(dto.getUserName())
                 .ifPresent(user -> {
-                    throw new AppException(ErrorCode.DUPLICATED_USER_NAME, String.format("userName:%s 는 이미 있습니다.", dto.getUserName()));
+                    throw new AppException(ErrorCode.DUPLICATED_USER_NAME, String.format("userName:%s 는 이미 있습니다.",
+                            dto.getUserName()));
                 });
         UserEntity savedUser = userRepository.save(
                 UserEntity.builder()
@@ -50,7 +51,8 @@ public class UserService {
 
         UserEntity user = userRepository.findByUserName(dto.getUserName())
                 .orElseThrow(() -> {
-                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND, String.format("userName:%s 는 가입된 적이 없습니다.", dto.getUserName()));
+                    throw new AppException(ErrorCode.USERNAME_NOT_FOUND,
+                            String.format("userName:%s 는 가입된 적이 없습니다.", dto.getUserName()));
                 });
 
         if (!encoder.matches(dto.getPassword(), user.getPassword())) {
