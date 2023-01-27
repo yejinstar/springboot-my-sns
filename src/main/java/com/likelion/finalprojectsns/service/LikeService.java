@@ -47,6 +47,7 @@ public class LikeService {
             LikeEntity savedLike = like.get();
             if (savedLike.getDeleted_at() == null) {
                 returnStr = "좋아요를 취소했습니다.";
+                // alarm time udpate
                 savedLike.cancelLike();
             } else {
                 savedLike.reLike();

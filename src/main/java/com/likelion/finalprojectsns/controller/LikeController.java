@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LikeController {
     private final LikeService likeService;
-    /**/
 
+    /* 좋아요 등록 및 취소 */
     @PostMapping("")
     public ResponseEntity<Response<String>> like(@PathVariable Integer postId, Authentication authentication){
         String userName = authentication.getName();

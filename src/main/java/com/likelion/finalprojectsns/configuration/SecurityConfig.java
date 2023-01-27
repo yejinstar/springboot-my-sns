@@ -27,9 +27,9 @@ public class SecurityConfig {
                 .cors().and()
                 .authorizeRequests()
                 .antMatchers("/api/v1/users/join", "/api/v1/users/login").permitAll() // join, login은 언제나 가능
-                .antMatchers(HttpMethod.GET, "/api/v1/posts/**/comments/**").authenticated() // 모든 get요청 허용
-                .antMatchers(HttpMethod.GET, "/api/v1/posts/**/likes").permitAll() // 모든 get요청 허용
-                .antMatchers(HttpMethod.GET, "/api/v1/posts/my").authenticated() // 모든 get요청 허용
+                .antMatchers(HttpMethod.GET, "/api/v1/posts/**/comments/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/v1/posts/**/likes").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/v1/posts/my").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/v1/posts/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/v1/**").authenticated() // 모든 get요청 허용
                 .antMatchers(HttpMethod.POST, "/api/v1/**").authenticated() // 모든 post요청을 인증된사용자인지 check
